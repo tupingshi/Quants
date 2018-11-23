@@ -1,0 +1,30 @@
+#定义一个线性填充NA值得函数
+def linear_fill_na(data):
+    #先删除y为na的所有行
+    for row in range(data.shape[0])[::-1]:
+        if np.isnan(data[row,0]):
+            data=np.delete(data,row,axis=0)
+    #给data上下各添加一行0
+    zero=np.zeros((1,data.shape[1]))
+    data=np.vstack((zero,data))
+    data=np.vstack((data,zero))
+    #线性填充na的部分
+    for col in range(3):
+        for row in range(data.shape[0]):
+            nan_num=0
+            if np.isnan(data[row,col+1]):
+                nan_num=1
+                #如果找到了na值，紧接着要往下统计数连续出现na值的个数
+                for aa in range(row+1,data.shape[0]):
+                    if np.isnan(data[aa,col+1]):
+                        #累加连续出现na的个数
+                        nan_num=nan_num+1
+                    else:
+                        #只出现一次na，即没有连续出现na时，跳出循环
+                        break
+            if nan_num>=1:
+                data[row,col+1]=data[row-1,col+1]+(data[row+nan_num,col+1]-data[row-1,col+1])/(nan_num+1)        
+    #去除第一行与最后一行
+    data=np.delete(data,0,axis=0)
+    data=np.delete(data,-1,axis=0)
+    return data
