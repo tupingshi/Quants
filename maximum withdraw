@@ -1,0 +1,33 @@
+#定义一个计算最大回撤的函数，作为风控策略
+def maximum_withdraw(y1):
+    #建一个空list储存每只股票的最大回撤
+    maximum_withdraw = []
+    #在原本的y1上面添加一行0矩阵
+    zero = np.zeros((1, y1.shape[1]))
+    y1 = np.vstack((zero, y1))
+    for col in range(y1.shape[1]):
+        #定位出return上期大于等于0，且本期小于零的股票的位置,作为计算最大回撤的起始点
+        start = []
+        for row in range(1, y1.shape[0]):
+            if y1[row-1, col] >= 0 and y1[row, col] < 0:
+                start = start + [row]
+        start = np.array(start)
+        #定位出return下期大于等于0，且本期小于零的股票的位置，作为计算最大回撤的终点
+        end = []
+        for row in range(y1.shape[0]-1):
+            if y1[row, col] < 0 and y1[row+1, col] >= 0:
+                end = end + [row]
+        end = np.array(end)
+        #开始计算所有最大回撤的可能值
+        possible_mw = []
+        for row_start in start:
+            for row_end in end:
+                if row_start < row_end:
+                    possible_mw = possible_mw + [np.nanmean(y1[row_start:row_end,col])]
+                elif row_start == row_end:
+                    possible_mw = possible_mw + [y1[row_start,col]]
+        possible_mw = np.array(possible_mw)
+        #找出最大回撤
+        maximum_withdraw = maximum_withdraw + [possible_mw.min()]
+    maximum_withdraw = np.array(maximum_withdraw)
+    return maximum_withdraw
